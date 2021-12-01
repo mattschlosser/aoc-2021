@@ -11,6 +11,17 @@ function movAvg(items) {
 }
 for (let item of items) {
     let depths = string.split('\n')
+    
+    for (let depth in depths) {
+        if (depths[depth].length == 0) {
+            continue;
+        }
+        if (+depths[depth] > +depths[depth-1]) {
+            i++;
+        }
+    }
+    console.log(i);
+    i = 0;
     for (let depth in depths) {
         if (depth == 0 || depth == 1 || depth == 2 || depth == 3) {
             continue;
@@ -20,7 +31,6 @@ for (let item of items) {
         if (movAvg(y) > movAvg(x)) {
             i++;
         }
-
     }
 }
 console.log(i);
