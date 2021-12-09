@@ -1,4 +1,3 @@
-// const { count } = require('console');
 const fs = require('fs');
 let buffer = fs.readFileSync('8');
 let string = buffer.toString();
