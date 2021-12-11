@@ -87,7 +87,7 @@ let gainEnergy = (lines) => {
             }
         }
     }
-    return newLines;
+    return [newLines, hasFlashed];
 }
 
 let printBoard = (lines) => {
@@ -95,7 +95,26 @@ let printBoard = (lines) => {
 }
 
 for (let i = 0; i < 100; i++) {
-    let newLines = gainEnergy(lines);
+    let [newLines] = gainEnergy(lines);
     lines = newLines;
 }
 console.log(total);
+let turn = 100;
+while (true) {
+    let [newLines, hasFlashed] = gainEnergy(lines);
+    lines = newLines;
+    turn++;
+    // if every cell in hasFlashed is 1
+    let allFlashed = true;
+    for (let line in hasFlashed) {
+        for (let cell in hasFlashed[line]) {
+            if (!hasFlashed[line][cell]) {
+                allFlashed = false;
+            }
+        }
+    }
+    if (allFlashed) {
+        console.log(turn);
+        break;
+    }
+}
