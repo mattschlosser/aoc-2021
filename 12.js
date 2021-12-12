@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { exit } = require('process');
 let buffer = fs.readFileSync('12');
 let string = buffer.toString();
 let lines = string.split('\n').filter(e => e != '').map(e => e.split('-').map(e => e));
@@ -44,9 +43,6 @@ visit = (node, visited, part = 1) => {
     }
     if (part == 2) {
         for (let neighbour of graph[node]) {
-            // console.log("HERE");
-            // all other caves have been visited at most once
-            // we are going to visit a small cave twice
             if (node.toUpperCase() != node) {
                 let v = visited.filter(e => e != node)
                 morePossiblePaths = visit(neighbour, v, 1);
@@ -59,16 +55,11 @@ visit = (node, visited, part = 1) => {
     }
     return possiblePaths
 }
-// console.log(visit('end', []));
-// console.log(visit('b', ['d']));
-// console.log(visit('d', ['b']));
-// console.log(visit('A', ['c']));
-// console.log(visit('start', []));
 let paths = visit('start', []);
 let x = new Set(paths.map(e => e.join(',')))
-console.log(x, x.size);
+console.log(x.size);
 let paths2 = visit('start', [], 2);
 let comparer = paths2.map(e => e.filter(e => e.toLowerCase() == e));
 let finalPaths = paths2.filter((e,i) => comparer[i].length - (new Set(comparer[i])).size < 2).map(e => e.join(','))
 let x2 = new Set(finalPaths);
-console.log(x2, x2.size);
+console.log(x2.size);
