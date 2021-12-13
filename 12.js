@@ -26,15 +26,15 @@ visit = (node, visited, part = 1) => {
         return [[node]];
     }
     for (let neighbour of graph[node]) {
-        if (!visited.includes(neighbour)) {
-            morePossiblePaths = visit(neighbour, [...visited, node], part);
+        if (!visited[neighbour]) {
+            morePossiblePaths = visit(neighbour, {...visited, [node]: true}, part);
             for (let path of morePossiblePaths) {
                 possiblePaths.push([node, ...path]);
             }
             // if we are visiting a node that can be visited twice, 
             // do not add it to the visited list
             if (node.toUpperCase() == node) {
-                morePossiblePaths = visit(neighbour, visited, part);
+                morePossiblePaths = visit(neighbour, {...visited}, part);
                 for (let path of morePossiblePaths) {
                     possiblePaths.push([node, ...path]);
                 }
@@ -44,7 +44,8 @@ visit = (node, visited, part = 1) => {
     if (part == 2) {
         for (let neighbour of graph[node]) {
             if (node.toUpperCase() != node) {
-                let v = visited.filter(e => e != node)
+                let v = {...visited};
+                delete v[node];
                 morePossiblePaths = visit(neighbour, v, 1);
                 for (let path of morePossiblePaths) {
                     processedPath = path.filter(e => e == e.toLowerCase());
@@ -55,10 +56,10 @@ visit = (node, visited, part = 1) => {
     }
     return possiblePaths
 }
-let paths = visit('start', []);
+let paths = visit('start', {});
 let x = new Set(paths.map(e => e.join(',')))
 console.log(x.size);
-let paths2 = visit('start', [], 2);
+let paths2 = visit('start', {}, 2);
 let comparer = paths2.map(e => e.filter(e => e.toLowerCase() == e));
 let finalPaths = paths2.filter((e,i) => comparer[i].length - (new Set(comparer[i])).size < 2).map(e => e.join(','))
 let x2 = new Set(finalPaths);
