@@ -4,93 +4,109 @@ let buffer = fs.readFileSync('15');
 let string = buffer.toString();
 // let [lines, instructions ] = string.split('\n\n');
 lines = string.split('\n').filter(e => e != '').map(e => e.split('').map(e => +e));
-console.table(lines);
+// console.table(lines);
 
-let i = 0;
-let j = 0;
 let goalI = lines.length - 1;
 let goalJ = lines[0].length - 1;
-let steps = 0;
-let max = 0;
-let totalCost = 0;
 // create a graph of the map
-let getCost = (i, j) => {
-    return lines[i][j];
-}
-let graph = {};
-for (let i = 0; i < lines.length; i++) {
-    for (let j = 0; j < lines[i].length; j++) {
-        let node = {
-            id: [i, j],
-            cost: getCost(i, j),
-            g: getCost(i, j),
-            h: goalJ - j + goalI - i,
-            neighbours: []
-        };
-        graph[node.id.join('-')] = node;
+let generateGraph = (lines) => {
+    let getCost = (i, j) => {
+        return lines[i][j];
     }
-}
-let getNeighbourKeys = (i, j) => {
-    let keys = [];
-    if (i > 0) keys.push([i - 1, j].join('-'));
-    if (i < goalI) keys.push([i + 1, j].join('-'));
-    if (j > 0) keys.push([i, j - 1].join('-'));
-    if (j < goalJ) keys.push([i, j + 1].join('-'));
-    return keys;
-}
-for (let key in graph) {
-    let node = graph[key];
-    let nks = getNeighbourKeys(...node.id);
-    for (let nk of nks) {
-        let neighbour = graph[nk];
-        node.neighbours.push(neighbour);
+    let graph = {};
+    for (let i = 0; i < lines.length; i++) {
+        for (let j = 0; j < lines[i].length; j++) {
+            let node = {
+                id: [i, j],
+                cost: getCost(i, j),
+                g: getCost(i, j),
+                h: goalJ - j + goalI - i,
+                neighbours: []
+            };
+            graph[node.id.join('-')] = node;
+        }
     }
+    let getNeighbourKeys = (i, j) => {
+        let keys = [];
+        if (i > 0) keys.push([i - 1, j].join('-'));
+        if (i < goalI) keys.push([i + 1, j].join('-'));
+        if (j > 0) keys.push([i, j - 1].join('-'));
+        if (j < goalJ) keys.push([i, j + 1].join('-'));
+        return keys;
+    }
+    for (let key in graph) {
+        let node = graph[key];
+        let nks = getNeighbourKeys(...node.id);
+        for (let nk of nks) {
+            let neighbour = graph[nk];
+            node.neighbours.push(neighbour);
+        }
+    }
+    return graph;
 }
-// console.log(graph);
-// exit();
-
-let openList = [graph['0-0']];
-let closedList = [];
-let total = 0;
-while (openList.length > 0) {
-    let current = openList.shift();
-    closedList.push(current);
-    let neighbours = current.neighbours.filter(e => !closedList.includes(e));
-    // console.log(neighbours);
-    for (let i = 0; i < neighbours.length; i++) {
-        let neighbour = neighbours[i];
-        if (neighbour.id[0] == goalI && neighbour.id[1] == goalJ) {
-            neighbour.parent = current;
-            total = current.g + neighbour.cost;
-            console.log(total);
-            // show the path back
-            let path = [neighbour];
-            let curr = neighbour;
-            while (curr.parent) {
-                path.push(curr.parent);
-                curr = curr.parent;
+let solveGraph = (graph) => {
+    let openList = [graph['0-0']];
+    let closedList = [];
+    let total = 0;
+    while (openList.length > 0) {
+        let current = openList.shift();
+        closedList.push(current);
+        let neighbours = current.neighbours.filter(e => !closedList.includes(e));
+        for (let i = 0; i < neighbours.length; i++) {
+            let neighbour = neighbours[i];
+            if (neighbour.id[0] == goalI && neighbour.id[1] == goalJ) {
+                neighbour.parent = current;
+                total = current.g + neighbour.cost;
+                // show the path back
+                let path = [neighbour];
+                let curr = neighbour;
+                while (curr.parent) {
+                    path.push(curr.parent);
+                    curr = curr.parent;
+                }
+                path.reverse();
+                console.log(total-path[0].cost);
+                return;
+                // exit();
             }
-            path.reverse();
-            console.table(path);
-            exit();
+            let g = current.g + neighbour.cost;
+            let h = goalJ - neighbour.id[1] + goalI - neighbour.id[0];
+            let f = g + h;
+            if (!openList.includes(neighbour) || neighbour.f > f)  {
+                neighbour.parent = current;
+                neighbour.g = g;
+                neighbour.h = h;
+                neighbour.f = f;
+                openList.push(neighbour);
+            }
+            // console.log(neighbour.id, neighbour.g, neighbour.h, neighbour.f);
         }
-        let g = current.g + neighbour.cost;
-        let h = goalJ - neighbour.id[1] + goalI - neighbour.id[0];
-        let f = g + h;
-        if (!openList.includes(neighbour) || neighbour.f > f)  {
-            neighbour.parent = current;
-            neighbour.g = g;
-            neighbour.h = h;
-            neighbour.f = f;
-            openList.push(neighbour);
-        }
-        // console.log(neighbour.id, neighbour.g, neighbour.h, neighbour.f);
+        openList.sort((a, b) => a.f - b.f);
+        closedList.push(current);
     }
-    openList.sort((a, b) => a.f - b.f);
-    // console.table(openList);
-    // break;
-    closedList.push(current);
 }
-
-
+let expandMap = (lines) => {
+    let expanded = Array(lines.length * 5);
+    for (let i = 0; i < lines.length* 5; i++) {
+        expanded[i] = Array(lines[0].length * 5);
+    }
+    for (let i = 0; i < lines.length; i++) {
+        for (let j = 0; j < lines[i].length; j++) {
+            let node = lines[i][j];
+            // expanded[i][j] = node;
+            for (let k = 0; k < 5; k++) {
+                for (let l = 0; l < 5; l++) {
+                    expanded[k * lines[i].length + i][l * lines[j].length + j] = ((node + k + l - 1) % 9) + 1;
+            //         // expanded[(i * 5 + k) * lines[0].length + j * 5 + l] = ((node + i + j - 1) % 8) + 1;
+                }
+            }
+        }
+    }
+    return expanded;
+}
+console.log(solveGraph(generateGraph(lines)));
+// console.table(expandMap(lines));
+goalI = lines.length * 5 - 1;
+goalJ = lines[0].length * 5 - 1;
+console.log(solveGraph(generateGraph(expandMap(lines))));
 // console.log(getCost(0,0));
