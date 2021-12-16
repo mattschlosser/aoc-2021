@@ -46,10 +46,12 @@ let generateGraph = (lines) => {
 }
 let solveGraph = (graph) => {
     let openList = [graph['0-0']];
+    openListIndex = {'0-0': true};
     let closedList = [];
     let total = 0;
     while (openList.length > 0) {
         let current = openList.shift();
+        delete openListIndex[current.id.join('-')];
         closedList.push(current);
         let neighbours = current.neighbours.filter(e => !closedList.includes(e));
         for (let i = 0; i < neighbours.length; i++) {
@@ -65,21 +67,22 @@ let solveGraph = (graph) => {
                     curr = curr.parent;
                 }
                 path.reverse();
-                console.log(total-path[0].cost);
-                return;
-                // exit();
+                return total - path[0].cost;
             }
             let g = current.g + neighbour.cost;
             let h = goalJ - neighbour.id[1] + goalI - neighbour.id[0];
             let f = g + h;
-            if (!openList.includes(neighbour) || neighbour.f > f)  {
+            let id = neighbour.id.join('-');
+            if (!openListIndex[id] || neighbour.f > f)  {
                 neighbour.parent = current;
                 neighbour.g = g;
                 neighbour.h = h;
                 neighbour.f = f;
-                openList.push(neighbour);
+                if (!openListIndex[id]) {
+                    openListIndex[id] = true;
+                    openList.push(neighbour);
+                }
             }
-            // console.log(neighbour.id, neighbour.g, neighbour.h, neighbour.f);
         }
         openList.sort((a, b) => a.f - b.f);
         closedList.push(current);
@@ -93,11 +96,9 @@ let expandMap = (lines) => {
     for (let i = 0; i < lines.length; i++) {
         for (let j = 0; j < lines[i].length; j++) {
             let node = lines[i][j];
-            // expanded[i][j] = node;
             for (let k = 0; k < 5; k++) {
                 for (let l = 0; l < 5; l++) {
                     expanded[k * lines[i].length + i][l * lines[j].length + j] = ((node + k + l - 1) % 9) + 1;
-            //         // expanded[(i * 5 + k) * lines[0].length + j * 5 + l] = ((node + i + j - 1) % 8) + 1;
                 }
             }
         }
@@ -105,8 +106,8 @@ let expandMap = (lines) => {
     return expanded;
 }
 console.log(solveGraph(generateGraph(lines)));
-// console.table(expandMap(lines));
 goalI = lines.length * 5 - 1;
 goalJ = lines[0].length * 5 - 1;
-console.log(solveGraph(generateGraph(expandMap(lines))));
-// console.log(getCost(0,0));
+let newGraph = expandMap(lines);
+console.log('graph has been expanded');
+console.log(solveGraph(generateGraph(newGraph)));
