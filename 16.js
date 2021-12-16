@@ -7,9 +7,22 @@ lines = string.split('\n').filter(e => e != '').map(e => e.split('').map(e => ("
 // console.table(lines);
 let versions = 0;
 
+let fn = (acc, value, type) => {
+    switch (type){
+        case 0: return acc === null ? value : acc + value;
+        case 1: return acc === null ? value : acc * value;
+        case 2: return acc === null ? value : Math.min(acc, value);
+        case 3: return acc === null ? value : Math.max(acc, value);   
+        case 5: return acc === null ? value : acc > value ? 1 : 0;
+        case 6: return acc === null ? value : acc < value ? 1 : 0;
+        case 7: return acc === null ? value : (acc == value ? 1 : 0) ;
+    }
+}
+
 let parseNextPacket = (line) => {
     let version = parseInt(line.substr(0, 3), 2);
     versions += version;
+    let acc = null;
     let type = parseInt(line.substr(3, 3), 2);
     console.log(version, type);
     if (type == 4) {
@@ -22,9 +35,9 @@ let parseNextPacket = (line) => {
             }
         }
         
-        let value = parseInt(bits.join(''), 2);
-        console.log("Literal", value);
-        return i+5;
+        acc = parseInt(bits.join(''), 2);
+        console.log("Literal", acc);
+        return [i+5, acc];
         // console.log("Packet", line.substr(0, i+5));
     } else {
         let typeId = line[6];
@@ -37,9 +50,11 @@ let parseNextPacket = (line) => {
             console.log(line.substr(22));
             for (let count = 0; count < packetsLength;) {
                 console.log(`Parsing packet ${count} of ${packetsLength}: `, line.substr(22 + count));
-                count += parseNextPacket(line.substr(22 + count));
+                [c, value] = parseNextPacket(line.substr(22 + count));
+                count += c;
+                acc = fn(acc, value, type);
             }
-            return 22 + packetsLength;
+            return [22 + packetsLength, acc];
             console.log(packetsLength);
         } else {
             // i know there are n packets, but not how long each one is
@@ -47,9 +62,11 @@ let parseNextPacket = (line) => {
             let count = 18;
             for (let i = 0; i < packetCount; i++) {
                 console.log(`Parsing packet ${i} of ${packetCount}: `, line.substr(count));
-                count += parseNextPacket(line.substr(count));
+                [c, value] = parseNextPacket(line.substr(count));
+                count+= c;
+                acc = fn(acc, value, type);
             }
-            return count;
+            return [count, acc];
         }
 
     }
@@ -57,7 +74,8 @@ let parseNextPacket = (line) => {
 
 for (let line of lines) {
     console.log(line);
-    parseNextPacket(line);
+    let [c, value] = parseNextPacket(line);
+    console.log(versions);
+    console.log(value);
   
 }
-console.log(versions);
