@@ -14,10 +14,6 @@ foreach ($steps as &$step) {
     $step = [$step[0] == 'on' ? 1 : 0, [...$matches[1], ...$matches[2]]];
 }
 
-// given two cuubes where each cube is two points represnting it's 
-// min and max dimensions, find the number of overlapping cubes
-
-
 function dimensionOverlap($start1, $end1, $start2, $end2) {
     if ($start1 > $end2 || $start2 > $end1) {
         return 0;
@@ -143,7 +139,6 @@ function switchLights($steps) {
 }
 
 function countSomeLights($history) {
-    // $history = switchLights($steps);
     $count = 0;
     foreach ($history as $cube) {
         $count += totalPoints(intersection($cube, [-50, -50, -50, 51, 51, 51]));
@@ -151,7 +146,6 @@ function countSomeLights($history) {
     return $count;
 }
 function countAllLights($history) {
-    // $history = switchLights($steps);
     $count = 0;
     foreach ($history as $cube) {
         $count += totalPoints($cube);
@@ -159,7 +153,5 @@ function countAllLights($history) {
     return $count;
 }
 
-// echo json_encode($steps);
-// echo totalPoints([-54112,-85059,-27449,-39297,-49292,7878]);
 echo countSomeLights(switchLights($steps)) . PHP_EOL;
 echo countAllLights(switchLights($steps)) . PHP_EOL;
